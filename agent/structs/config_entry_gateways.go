@@ -9,6 +9,7 @@ import (
 
 	"github.com/hashicorp/consul/acl"
 	"github.com/hashicorp/consul/lib/stringslice"
+	"github.com/hashicorp/consul/types"
 )
 
 // IngressGatewayConfigEntry manages the configuration for an ingress service
@@ -99,6 +100,15 @@ type GatewayTLSConfig struct {
 
 	// SDS allows configuring TLS certificate from an SDS service.
 	SDS *GatewayTLSSDSConfig `json:",omitempty"`
+
+	TLSMinVersion *types.TLSVersion `json:",omitempty"`
+	TLSMaxVersion *types.TLSVersion `json:",omitempty"`
+
+	// Define a subset of cipher suites to restrict
+	// Only applicable to connections negotiated via TLS 1.2 or earlier
+	// TODO: will return a validation error if set in combination with
+	// TLSMinVersion TLSv1_3 or greater
+	CipherSuites *[]types.TLSCipherSuite `json:",omitempty"`
 }
 
 type GatewayServiceTLSConfig struct {
