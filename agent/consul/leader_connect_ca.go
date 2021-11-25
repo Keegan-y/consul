@@ -640,12 +640,10 @@ func (c *CAManager) secondaryInitializeIntermediateCA(provider ca.Provider, conf
 		needsNewIntermediate = true
 	}
 
-	newIntermediate := false
 	if needsNewIntermediate {
 		if err := c.secondaryRenewIntermediate(provider, newActiveRoot); err != nil {
 			return err
 		}
-		newIntermediate = true
 	} else {
 		// Discard the primary's representation since our local one is
 		// sufficiently up to date.
@@ -654,7 +652,7 @@ func (c *CAManager) secondaryInitializeIntermediateCA(provider ca.Provider, conf
 
 	// Determine whether a root update is needed, and persist the roots/config accordingly.
 	var newRoot *structs.CARoot
-	if activeRoot == nil || activeRoot.ID != newActiveRoot.ID || newIntermediate {
+	if activeRoot == nil || needsNewIntermediate {
 		newRoot = newActiveRoot
 	}
 	if err := c.persistNewRootAndConfig(provider, newRoot, config); err != nil {
