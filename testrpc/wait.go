@@ -3,9 +3,10 @@ package testrpc
 import (
 	"testing"
 
+	"github.com/stretchr/testify/require"
+
 	"github.com/hashicorp/consul/agent/structs"
 	"github.com/hashicorp/consul/sdk/testutil/retry"
-	"github.com/stretchr/testify/require"
 )
 
 type rpcFn func(string, interface{}, interface{}) error
@@ -143,6 +144,7 @@ func WaitForTestAgent(t *testing.T, rpc rpcFn, dc string, options ...waitOption)
 // raft leadership is gained so WaitForLeader isn't sufficient to be sure that
 // the CA is fully initialized.
 func WaitForActiveCARoot(t *testing.T, rpc rpcFn, dc string, expect *structs.CARoot) {
+	t.Helper()
 	retry.Run(t, func(r *retry.R) {
 		args := &structs.DCSpecificRequest{
 			Datacenter: dc,
