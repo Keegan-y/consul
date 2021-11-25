@@ -526,7 +526,7 @@ func (c *CAManager) primaryInitialize(provider ca.Provider, conf *structs.CAConf
 	// provider=consul this didn't matter since there are no intermediates in
 	// the primaryDC, but for vault it does matter.
 	expectedSigningKeyID := connect.EncodeSigningKeyID(intermediateCert.SubjectKeyId)
-	needsSigningKeyUpdate := (rootCA.SigningKeyID != expectedSigningKeyID)
+	needsSigningKeyUpdate := rootCA.SigningKeyID != expectedSigningKeyID
 
 	// Check if the CA root is already initialized and exit if it is,
 	// adding on any existing intermediate certs since they aren't directly
@@ -585,10 +585,12 @@ func (c *CAManager) primaryInitialize(provider ca.Provider, conf *structs.CAConf
 	return nil
 }
 
-// secondaryInitializeIntermediateCA runs the routine for generating an intermediate CA CSR and getting
-// it signed by the primary DC if the root CA of the primary DC has changed since the last
-// intermediate. It should only be called while the state lock is held by setting the state
-// to non-ready.
+// secondaryInitializeIntermediateCA generates a Certificate Signing Request (CSR)
+// for the intermediate CA that is used to sign leaf certificates in the secondary.
+// The CSR is signed by the primary DC and then persisted in the state store.
+//
+// This method should only be called while the state lock is held by setting the
+// state to non-ready.
 func (c *CAManager) secondaryInitializeIntermediateCA(provider ca.Provider, config *structs.CAConfiguration) error {
 	activeIntermediate, err := provider.ActiveIntermediate()
 	if err != nil {
