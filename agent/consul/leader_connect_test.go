@@ -399,6 +399,13 @@ func TestLeader_Vault_PrimaryCA_IntermediateRenew(t *testing.T) {
 	_, err = connect.ParseCert(intermediatePEM)
 	require.NoError(err)
 
+	// Check that the state store has the correct intermediate
+	store := s1.caManager.delegate.State()
+	_, activeRoot, err := store.CARootActive(nil)
+	require.NoError(err)
+	require.Equal([]string{intermediatePEM}, activeRoot.IntermediateCerts)
+	// TODO: check the SigningKeyID is correct
+
 	// Wait for dc1's intermediate to be refreshed.
 	// It is possible that test fails when the blocking query doesn't return.
 	retry.Run(t, func(r *retry.R) {
@@ -412,7 +419,9 @@ func TestLeader_Vault_PrimaryCA_IntermediateRenew(t *testing.T) {
 		}
 		intermediatePEM = newIntermediatePEM
 	})
-	require.NoError(err)
+
+	// TODO: check intermediate is properly updated in state store after rotation
+	// TODO: check the SigningKeyID is correct after rotation
 
 	// Get the root from dc1 and validate a chain of:
 	// dc1 leaf -> dc1 intermediate -> dc1 root
